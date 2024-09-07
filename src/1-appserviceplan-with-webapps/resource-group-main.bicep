@@ -13,7 +13,7 @@ param envsufix string
 
 @minLength(3)
 @maxLength(12)
-@description('Provide a name for the storage account.')
+@description('Provide a name for the project.')
 param project string
 
 resource newRG 'Microsoft.Resources/resourceGroups@2024-03-01' = {

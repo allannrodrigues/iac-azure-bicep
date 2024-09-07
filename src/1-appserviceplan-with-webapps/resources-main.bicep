@@ -12,7 +12,7 @@ param envsufix string
 
 @minLength(3)
 @maxLength(10)
-@description('Provide a name for the storage account.')
+@description('Provide a name for the project.')
 param project string
 
 @description('The administrator username of the SQL logical server.')
