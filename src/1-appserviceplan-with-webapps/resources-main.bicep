@@ -69,7 +69,6 @@ resource appFrontend 'Microsoft.Web/sites@2022-09-01' = {
     clientAffinityEnabled: false
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'NODE|12-lts'
       minTlsVersion: '1.2'
       alwaysOn: true
       appSettings: [
@@ -112,7 +111,6 @@ resource appBackend 'Microsoft.Web/sites@2022-09-01' = {
     clientAffinityEnabled: false
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|3.0'
       minTlsVersion: '1.2'
       alwaysOn: true
       appSettings: [
@@ -214,9 +212,6 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
     administratorLogin: administratorLogin
     administratorLoginPassword: administratorLoginPassword
   }
-  identity: {
-    type: 'SystemAssigned'
-  }
 }
 
 resource sqlDB 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
@@ -226,9 +221,6 @@ resource sqlDB 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
   sku: {
     name: 'Basic'
     tier: 'Basic'
-  }
-  identity: {
-    type: 'SystemAssigned'
   }
 }
 
@@ -244,7 +236,7 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
     softDeleteRetentionInDays: 90
     accessPolicies: [
       {
-        objectId: appBackend.id
+        objectId: appBackend.identity.principalId
         tenantId: subscription().tenantId
         permissions: {
           keys: ['list', 'get']
@@ -252,7 +244,7 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
         }
       }
       {
-        objectId: appFrontend.id
+        objectId: appFrontend.identity.principalId
         tenantId: subscription().tenantId
         permissions: {
           keys: ['list', 'get']
@@ -260,7 +252,7 @@ resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
         }
       }
       {
-        objectId: functionApp.id
+        objectId: functionApp.identity.principalId
         tenantId: subscription().tenantId
         permissions: {
           keys: ['list', 'get']
