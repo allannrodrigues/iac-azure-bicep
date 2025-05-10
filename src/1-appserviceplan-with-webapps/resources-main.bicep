@@ -11,7 +11,7 @@ param location string = resourceGroup().location
 param envsufix string
 
 @minLength(3)
-@maxLength(10)
+@maxLength(11)
 @description('Provide a name for the project.')
 param project string
 
@@ -39,11 +39,14 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-01-01-preview'
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: 'plan-${project}-${envsufix}'
   location: location
+  kind: 'linux'
   sku: {
     name: 'B1'
     capacity: 1
   }
-  kind: 'linux'
+  properties: {
+    reserved: true
+  }
   tags: {
     project: project
   }
@@ -63,7 +66,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 resource appFrontend 'Microsoft.Web/sites@2022-09-01' = {
-  name: 'front-${project}-${envsufix}'
+  name: 'frontend-${project}-${envsufix}'
   location: location
   properties: {
     clientAffinityEnabled: false
@@ -72,10 +75,6 @@ resource appFrontend 'Microsoft.Web/sites@2022-09-01' = {
       minTlsVersion: '1.2'
       alwaysOn: true
       appSettings: [
-        {
-          name: 'ConnectionStrings_Database'
-          value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
-        }
         {
           name: 'WEBSITE_TIME_ZONE'
           value: 'Brazil/East'
@@ -105,7 +104,7 @@ resource appFrontend 'Microsoft.Web/sites@2022-09-01' = {
 }
 
 resource appBackend 'Microsoft.Web/sites@2022-09-01' = {
-  name: 'api-${project}-${envsufix}'
+  name: 'backend-${project}-${envsufix}'
   location: location
   properties: {
     clientAffinityEnabled: false
@@ -115,7 +114,7 @@ resource appBackend 'Microsoft.Web/sites@2022-09-01' = {
       alwaysOn: true
       appSettings: [
         {
-          name: 'ConnectionStrings_Database'
+          name: 'ConnectionStrings_DefaultConnection'
           value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
         }
         {
@@ -177,6 +176,26 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
         {
           name: 'ConnectionStrings__Database'
           value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+        }
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: applicationInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'dotnet-isolated'
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
+        }
+        {
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: '1'
+        }
+        {
+          name: 'WEBSITE_TIME_ZONE'
+          value: 'Brazil/East'
         }
       ]
       minTlsVersion: '1.2'
@@ -275,7 +294,7 @@ resource secretDatabase 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: kv
   name: 'Database'
   properties: {
-    value: 'Database'
+    value: 'Server=sql-${project}-${envsufix}.database.windows.net;Database=db-${project}-${envsufix};User Id=${administratorLogin};Password=${administratorLoginPassword};TrustServerCertificate=True;Encrypt=True;'
   }
 }
 
@@ -283,6 +302,14 @@ resource secretContainer 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: kv
   name: 'ContainerRegistry'
   properties: {
-    value: '${acrResource.listCredentials().passwords[0]}'
+    value: acrResource.listCredentials().passwords[0].value
+  }
+}
+
+resource secretStorage 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: kv
+  name: 'Storage'
+  properties: {
+    value: 'DefaultEndpointsProtocol=https;AccountName=${storageaccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageaccount.listKeys().keys[0].value}'
   }
 }
