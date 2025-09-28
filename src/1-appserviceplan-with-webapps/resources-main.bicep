@@ -76,6 +76,26 @@ resource appFrontend 'Microsoft.Web/sites@2022-09-01' = {
       alwaysOn: true
       appSettings: [
         {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Production'
+        }
+        {
+          name: 'NODE_ENV'
+          value: 'Production'
+        }
+        {
+          name: 'ConnectionStrings__DefaultConnection'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+        }
+        {
+          name: 'ConnectionStrings__Storage'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Storage)'
+        }
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: '1'
+        }
+        {
           name: 'WEBSITE_TIME_ZONE'
           value: 'Brazil/East'
         }
@@ -114,8 +134,32 @@ resource appBackend 'Microsoft.Web/sites@2022-09-01' = {
       alwaysOn: true
       appSettings: [
         {
-          name: 'ConnectionStrings_DefaultConnection'
-          value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Production'
+        }
+        {
+          name: 'DOTNET_gcServer'
+          value: '1'
+        }
+        {
+          name: 'DOTNET_GCHeapCount'
+          value: 'c'
+        }
+        {
+          name: 'DOTNET_gcConcurrent'
+          value: '1'
+        }
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: '1'
+        }
+        {
+          name: 'ConnectionStrings__DefaultConnection'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+        }
+        {
+          name: 'ConnectionStrings__Storage'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Storage)'
         }
         {
           name: 'WEBSITE_TIME_ZONE'
@@ -123,7 +167,7 @@ resource appBackend 'Microsoft.Web/sites@2022-09-01' = {
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/ContainerRegistry)'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/ContainerRegistry)'
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
@@ -174,8 +218,36 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
     siteConfig: {
       appSettings: [
         {
-          name: 'ConnectionStrings__Database'
-          value: '@Microsoft.KeyVault(https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+          name: 'AzureWebJobsStorage'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Storage)'
+        }
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Production'
+        }
+        {
+          name: 'DOTNET_gcServer'
+          value: '1'
+        }
+        {
+          name: 'DOTNET_GCHeapCount'
+          value: 'c'
+        }
+        {
+          name: 'DOTNET_gcConcurrent'
+          value: '1'
+        }
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: '1'
+        }
+        {
+          name: 'ConnectionStrings__DefaultConnection'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Database)'
+        }
+        {
+          name: 'ConnectionStrings__Storage'
+          value: '@Microsoft.KeyVault(SecretUri=https://kv-${project}-${envsufix}.vault.azure.net/secrets/Storage)'
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
